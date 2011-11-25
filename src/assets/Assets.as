@@ -21,27 +21,10 @@ package assets
 		[Embed(source="infoBtn.png")]
 		public static const MENU_INFO_BTN : Class;
 		
-		[Embed(source="pipie12.png")]
-		public static const PIPIE_1_2 : Class;
-		
-		[Embed(source="pipie23.png")]
-		public static const PIPIE_2_3 : Class;
-		
-		[Embed(source="pipie34.png")]
-		public static const PIPIE_3_4 : Class;
-		
-		[Embed(source="pipie41.png")]
-		public static const PIPIE_4_1 : Class;
-		
-		[Embed(source="pipie13.png")]
-		public static const PIPIE_1_3 : Class;
-		
-		[Embed(source="pipie24.png")]
-		public static const PIPIE_2_4 : Class;
-		
+		[Embed(source="pipieAssets.png")]
+		public static const PIPIE_ASSETS : Class;
 		[Embed(source="pipieTop.png")]
 		public static const PIPIE_TOP : Class;
-		
 		[Embed(source="pipieBottom.png")]
 		public static const PIPIE_BOTTOM : Class;
 		
@@ -59,6 +42,12 @@ package assets
 		
 		[Embed(source="BottomLine.png")]
 		public static const BOTTOM_LINE : Class;
+		
+		[Embed(source="timeLine.png")]
+		public static const TIMER_LINE : Class;
+		
+		[Embed(source="pipieTime.png")]
+		public static const PIPIE_TIME : Class;
 	}
 
 }

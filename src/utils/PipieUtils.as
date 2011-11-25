@@ -4,17 +4,64 @@ package utils
 	import datamodels.pipieOV;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	/**
 	 * ...
 	 * @author Tom.Lu
 	 */
 	public class PipieUtils 
 	{
+		public static const PIPIE_MID_BD:BitmapData = Bitmap(new Assets.PIPIE_ASSETS()).bitmapData;
+		public static const PIPIE_TOP_BD:BitmapData = Bitmap(new Assets.PIPIE_TOP()).bitmapData;
+		public static const PIPIE_BOTTOM_BD:BitmapData = Bitmap(new Assets.PIPIE_BOTTOM()).bitmapData;
+		public static const DIR_LIST:Vector.<uint> = new Vector.<uint>();
+		DIR_LIST.push(pipieOV.DIR_12, pipieOV.DIR_13, pipieOV.DIR_23, pipieOV.DIR_24, pipieOV.DIR_34, pipieOV.DIR_41);
+		public static const COLOR_LIST:Vector.<uint> = new Vector.<uint>();
+		COLOR_LIST.push(pipieOV.COLOR_GREEN, pipieOV.COLOR_RED, pipieOV.COLOR_BLUE, pipieOV.COLOR_YELLOW, pipieOV.COLOR_PURPLE);
+		
+		/*
+		 * 随机抽取方向
+		 */ 
+		public static function randomPipieDir(dir:uint=0):uint
+		{
+			//trace("debug randomPipieDir");
+			var direction:uint;
+			var len:uint = DIR_LIST.length;
+			//1-上水管，2-下水管，3-中间水管
+			if (dir == pipieOV.DIR_TOP)
+			{
+				direction= pipieOV.DIR_TOP;
+			}
+			else if (dir == pipieOV.DIR_BOTTOM)
+			{
+				direction = pipieOV.DIR_BOTTOM;
+			}
+			else
+			{
+				direction = DIR_LIST[int(Math.random() * len)];
+				//direction = pipieOV.DIR_13;
+			}
+			return direction;
+		}
+		/*
+		 * 随机抽取颜色
+		 */ 
+		public static function randomPipieColor(colorTotal:uint):uint
+		{
+			//trace("debug randomPipieColor = " + colorTotal);
+			var color:uint = pipieOV.COLOR_GREEN;
+			var len:uint = colorTotal < COLOR_LIST.length?colorTotal:COLOR_LIST.length;
+			color = COLOR_LIST[int(Math.random() * len)];
+			return color;
+		}
 		/*
 		 * 鼠标点击水管一次，旋转的后的方向 
 		 */
 		public static function changeDirByClick(oldDir:uint):uint
 		{
+			//trace("debug changeDirByClick");
 			var newDir:uint = 0;
 			switch(oldDir)
 			{
@@ -54,6 +101,7 @@ package utils
 		 */
 		public static function findEntranceByRoom(room:uint):uint
 		{
+			//trace("debug findEntranceByRoom");
 			var entrance:uint = 0;
 			switch(room)
 			{
@@ -75,39 +123,79 @@ package utils
 		/*
 		 * 根据方向，返回图片
 		 */
-		public static function genPipieBitmapData(dir:uint):BitmapData
+		public static function genPipieBitmapData(pipie:pipieOV):BitmapData
 		{
-			var returnBitmapData:BitmapData;
-			switch(dir)
+			//trace("debug genPipieBitmapData");
+			var returnBitmapData:BitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0);
+			var rect:Rectangle = new Rectangle(0, 0, pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H);
+			var point:Point = new Point(0, 0);
+			var mc:Matrix;
+			switch(pipie.direction)
 			{
 				case pipieOV.DIR_12:
-					returnBitmapData = Bitmap(new Assets.PIPIE_1_2()).bitmapData;
+					rect.x = pipieOV.DIR_COMMON_W;
+					returnBitmapData.copyPixels(PIPIE_MID_BD, rect, point);
 					break;
 				case pipieOV.DIR_13:
-					returnBitmapData = Bitmap(new Assets.PIPIE_1_3()).bitmapData;
+					mc = new Matrix();
+					mc.rotate(Math.PI / 2);
+					mc.translate(pipieOV.DIR_COMMON_W, 0);
+					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_23:
-					returnBitmapData = Bitmap(new Assets.PIPIE_2_3()).bitmapData;
+					mc = new Matrix();
+					mc.translate(-pipieOV.DIR_COMMON_W, 0);
+					mc.rotate(Math.PI / 2);
+					mc.translate(pipieOV.DIR_COMMON_W, 0);
+					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_24:
-					returnBitmapData = Bitmap(new Assets.PIPIE_2_4()).bitmapData;
+					returnBitmapData.copyPixels(PIPIE_MID_BD, rect, point);
 					break;
 				case pipieOV.DIR_34:
-					returnBitmapData = Bitmap(new Assets.PIPIE_3_4()).bitmapData;
+					mc = new Matrix();
+					mc.translate(-pipieOV.DIR_COMMON_W, 0);
+					mc.rotate(Math.PI);
+					mc.translate(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H);
+					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_41:
-					returnBitmapData = Bitmap(new Assets.PIPIE_4_1()).bitmapData;
+					mc = new Matrix();
+					mc.translate(-pipieOV.DIR_COMMON_W, 0);
+					mc.rotate(-Math.PI/2);
+					mc.translate(0, pipieOV.DIR_COMMON_H);
+					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_TOP:
-					returnBitmapData = Bitmap(new Assets.PIPIE_TOP()).bitmapData;
+					rect.width = pipieOV.DIR_TOP_W;
+					rect.x = pipie.color * pipieOV.DIR_TOP_W;
+					point.x = (pipieOV.DIR_COMMON_W - pipieOV.DIR_TOP_W) / 2;
+					returnBitmapData.copyPixels(PIPIE_TOP_BD, rect, point);
 					break;
 				case pipieOV.DIR_BOTTOM:
-					returnBitmapData = Bitmap(new Assets.PIPIE_BOTTOM()).bitmapData;
+					rect.width = pipieOV.DIR_BOTTOM_W;
+					rect.x = pipie.color * pipieOV.DIR_BOTTOM_W;
+					point.x = (pipieOV.DIR_COMMON_W - pipieOV.DIR_BOTTOM_W) / 2;
+					returnBitmapData.copyPixels(PIPIE_BOTTOM_BD, rect, point);
 					break;
 				default :
-					returnBitmapData = Bitmap(new Assets.PIPIE_1_2()).bitmapData;
+					rect.x = pipieOV.DIR_COMMON_W;
+					returnBitmapData.copyPixels(PIPIE_MID_BD, rect, point);
 					break;
 			}
+			return returnBitmapData;
+		}
+		
+		/*
+		 * 返回过关需要的颜色水管
+		 */
+		public static function genPipieTopBitmapData(color:uint=0):BitmapData
+		{
+			var returnBitmapData:BitmapData = new BitmapData(pipieOV.DIR_TOP_W, pipieOV.DIR_TOP_H, true, 0);
+			var mc:Matrix = new Matrix();
+			mc.rotate(-Math.PI);
+			mc.translate((color +1)* pipieOV.DIR_TOP_W, pipieOV.DIR_TOP_H);
+			returnBitmapData.draw(PIPIE_TOP_BD, mc);
 			return returnBitmapData;
 		}
 	}

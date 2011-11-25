@@ -18,31 +18,32 @@ package datamodels
 		public static const STATE_NONE:uint = 0;
 		public static const STATE_CLICK:uint = 1;
 		public static const STATE_PASSING:uint = 2;
+		public static const STATE_MOVE:uint = 3;
 		
-		public static const COLOR_NONE:uint = 0;
+		public static const COLOR_GREEN:uint = 0;
 		public static const COLOR_RED:uint = 1;
-		public static const COLOR_ORANGE:uint = 2;
+		public static const COLOR_BLUE:uint = 2;
 		public static const COLOR_YELLOW:uint = 3;
-		public static const COLOR_GREEN:uint = 4;
-		public static const COLOR_BLUE:uint = 5;
-		public static const COLOR_PURPLE:uint = 6;
+		public static const COLOR_PURPLE:uint = 4;
 		
-		public static const DIR_L_W:Number = 56;
-		public static const DIR_L_H:Number = 43;
-		public static const DIR_R_W:Number = 17;
-		public static const DIR_R_H:Number = 43;
+		public static const DIR_TOP_W:Number = 32;
+		public static const DIR_TOP_H:Number = 60;
+		public static const DIR_BOTTOM_W:Number = 36;
+		public static const DIR_BOTTOM_H:Number = 57;
 		public static const DIR_COMMON_W:Number = 60;
 		public static const DIR_COMMON_H:Number = 60;
 		
 		private var _Direction:uint = DIR_12;
 		private var _Type:uint = STATE_NONE;
-		private var _Color:uint = COLOR_NONE;
+		private var _Color:uint = COLOR_GREEN;
 		private var _PX:uint = 0;
 		private var _PY:uint = 0;
 		private var _X:Number = 0;
 		private var _Y:Number = 0;
 		private var _NextX:Number = 0;
 		private var _NextY:Number = 0;
+		private var _Times:int = -1;
+		//-1 表示不倒数，大于0就是倒数，等于0表示倒数结束
 		
 		private var _ContentPipie1:pipieOV = null;
 		private var _ContentPipie2:pipieOV = null;
@@ -134,6 +135,15 @@ package datamodels
 			return this._NextY;
 		}
 		
+		public function set times(value:int):void
+		{
+			this._Times = value;
+		}
+		public function get times():int
+		{
+			return this._Times;
+		}
+		
 		public function set enterPipie(value:pipieOV):void
 		{
 			this._EnterPipie = value;
@@ -170,7 +180,7 @@ package datamodels
 		
 		public function traceString(value:String):void
 		{
-			trace(value,"= (", _PX, _PY, ")");
+			trace(value,"= (", _PX+1, _PY+1, ")");
 		}
 	}
 
