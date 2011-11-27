@@ -48,6 +48,19 @@ package assets
 		
 		[Embed(source="pipieTime.png")]
 		public static const PIPIE_TIME : Class;
+		
+		//游戏结束
+		[Embed(source="GameOverTitle.png")]
+		public static const OVER_TITLE : Class
+		
+		[Embed(source="SumbitScoreBtn.png")]
+		public static const OVER_SUMBIT_BTN : Class
+		
+		[Embed(source="RePlayBtn.png")]
+		public static const OVER_REPLAY_BTN : Class
+		
+		[Embed(source="BackToMenuBtn.png")]
+		public static const OVER_MENU_BTN : Class
 	}
 
 }

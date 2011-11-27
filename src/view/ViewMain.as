@@ -36,9 +36,14 @@ package view
 		private const STATE_LVUP:uint = 7;
 		
 		private const MAX_X:uint = 7;
+		private const MIN_Y:uint = 4;
 		private const MAX_Y:uint = 8;
 		
+		private var _StageW:Number = 480;
+		private var _StageH:Number = 800;
+		
 		private var _CurState:uint = STATE_NONE;
+		
 		private var _PipieList:Vector.<pipieOV>;
 		private var _PipiePoolList:Vector.<pipieOV>;
 		private var _ContentPipieList:Vector.<pipieOV>;
@@ -50,8 +55,6 @@ package view
 		private var _GroundBitmap:Bitmap;
 		private var _GroundShape:Shape;
 		private var _PipieTopSprite:Sprite;
-		private var _PipieTopBack:Bitmap;
-		private var _PipieTopFront:Bitmap;
 		private var _PipieTopCanvas:Bitmap;
 		private var _PipieBottomCanvas:Bitmap;
 		private var _PipieCanvas:Bitmap;
@@ -60,7 +63,6 @@ package view
 		private var _PipieColorTotalCanvas:Bitmap;
 		private var _PipieColorLabelList:Vector.<TextField>;
 		private var _PipieTimesLabelList:Vector.<TextField>;
-		private var _LoseSprite:Sprite;
 		
 		private var _ShowContentFrame:int = 30;
 		private var _UpCanvasFrame:int = 6;
@@ -71,7 +73,7 @@ package view
 		private var _LevelPipitLimit:uint = 9;
 		private var _LevelPipieIncrease:uint = 1;
 		private var _ShowNumPer:int = -5;
-		private var _ShowNumPerLimit:uint = 30;
+		private var _ShowNumPerLimit:uint = 20;
 		private var _ShowNumPerIncrease:uint = 5;
 		private var _CurY:uint = 3;
 		
@@ -83,10 +85,21 @@ package view
 			
 		public function ViewMain() 
 		{
-			trace("Game Width&Height",this.width, this.height);
+			trace("game size = ", this.width, this.height);
 			
 			this.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
 			crateUI();
+			
+			if (stage) init();
+			else addEventListener(Event.ADDED_TO_STAGE, init);
+		}
+		
+		private function init(e:Event = null):void 
+		{
+			removeEventListener(Event.ADDED_TO_STAGE, init);
+			// entry point
+			
+			trace("game size = ", stage.stageWidth, stage.stageHeight, stage.width, stage.height, this.width, this.height);
 		}
 		
 		public function dispose():void
@@ -107,65 +120,52 @@ package view
 			_GroundShape = new Shape();
 			var g:Graphics = _GroundShape.graphics;
 			g.beginBitmapFill(_GroundBitmap.bitmapData);
-			g.drawRect(0, 0, 480, 540);
+			g.drawRect(0, 0, _StageW, 540);
 			g.endFill();
 			_GroundShape.y = 117;
 			_PipieTopSprite.addChild(_GroundShape);
 			
-			_PipieTopBack = new Assets.LAND_BACK() as Bitmap;
-			_PipieTopBack.x = -1;
-			_PipieTopBack.y = 0;
-			_PipieTopSprite.addChild(_PipieTopBack);
-			
-			_PipieTopCanvas = new Bitmap(new BitmapData(480, 117, true, 0xffffff));
+			_PipieTopCanvas = new Bitmap();
 			_PipieTopSprite.addChild(_PipieTopCanvas);
 			
-			var pipieTotalLabelFormat:TextFormat = new TextFormat("_sans", "20", "0x000000");
-			pipieTotalLabelFormat.align = TextFormatAlign.CENTER;
-			var pipieTotalLabel:TextField;
+			var pipieTimesLabelFormat:TextFormat = new TextFormat("_sans", "40", "0x000000");
+			pipieTimesLabelFormat.align = TextFormatAlign.CENTER;
+			var pipieTimesLabel:TextField;
 			_PipieTimesLabelList = new Vector.<TextField>();
 			for (var i:uint = 0; i < MAX_X; i++)
 			{
-				pipieTotalLabel = new TextField();
-				pipieTotalLabel.selectable = false;
-				pipieTotalLabel.width = 60;
-				pipieTotalLabel.defaultTextFormat = pipieTotalLabelFormat;
-				pipieTotalLabel.visible = false;
-				pipieTotalLabel.text = "0";
-				pipieTotalLabel.x = 30 + i * pipieOV.DIR_COMMON_W;
-				pipieTotalLabel.y = 48;
-				_PipieTopSprite.addChild(pipieTotalLabel);
-				_PipieTimesLabelList.push(pipieTotalLabel);
+				pipieTimesLabel = new TextField();
+				pipieTimesLabel.selectable = false;
+				pipieTimesLabel.width = 60;
+				pipieTimesLabel.defaultTextFormat = pipieTimesLabelFormat;
+				pipieTimesLabel.visible = false;
+				pipieTimesLabel.text = "0";
+				_PipieTopSprite.addChild(pipieTimesLabel);
+				_PipieTimesLabelList.push(pipieTimesLabel);
 			}
-
-			_PipieTopFront = new Assets.LAND_FRONT() as Bitmap;
-			_PipieTopFront.x = -1;
-			_PipieTopFront.y = 92;
-			_PipieTopSprite.addChild(_PipieTopFront);
 			
-			_PipieCanvas = new Bitmap(new BitmapData(420, 540, true, 0xffffff));
+			_PipieCanvas = new Bitmap();
 			_PipieCanvas.x = 30;
 			addChild(_PipieCanvas);
 			
-			_PipieBottomCanvas = new Bitmap(new BitmapData(480, 82, false, 0x4E3728));
-			_PipieBottomCanvas.y = 800 - 82;
+			_PipieBottomCanvas = new Bitmap();
+			_PipieBottomCanvas.y = 800 - (pipieOV.DIR_BOTTOM_H + 5);
 			addChild(_PipieBottomCanvas);
-			
-			var newFormat:TextFormat = new TextFormat("_sans", "20", "0xFF0000", "true");
-            newFormat.align = TextFormatAlign.LEFT;
 			
 			_PipieColorTotalSprite = new Sprite();
 			addChild(_PipieColorTotalSprite);
 			
 			_PipieColorTotalCanvas = new Bitmap();
 			_PipieColorTotalSprite.addChild(_PipieColorTotalCanvas);
-			
+			var pipieTotalLabelFormat:TextFormat = new TextFormat("_sans", "40", "0x000000");
+			pipieTotalLabelFormat.align = TextFormatAlign.CENTER;
+			var pipieTotalLabel:TextField;
 			_PipieColorLabelList = new Vector.<TextField>();
 			for (var j:uint = 0; j < 5; j++)
 			{
 				pipieTotalLabel = new TextField();
 				pipieTotalLabel.selectable = false;
-				pipieTotalLabel.width = 44;
+				pipieTotalLabel.width = pipieOV.DIR_TOP_W+2;
 				pipieTotalLabel.defaultTextFormat = pipieTotalLabelFormat;
 				pipieTotalLabel.visible = false;
 				pipieTotalLabel.text = "0";
@@ -173,36 +173,14 @@ package view
 				_PipieColorLabelList.push(pipieTotalLabel);
 			}
 			
+			var scoreFormat:TextFormat = new TextFormat("_sans", "40", "0x009900", "true");
+            scoreFormat.align = TextFormatAlign.LEFT;
 			_ScoreLabel = new TextField();
-			_ScoreLabel.defaultTextFormat = newFormat;
+			_ScoreLabel.selectable = false;
+			_ScoreLabel.defaultTextFormat = scoreFormat;
 			_ScoreLabel.x = 5;
 			addChild(_ScoreLabel);
-			
-			_LoseSprite = new Sprite();
-			_LoseSprite.useHandCursor = true;
-			g = _LoseSprite.graphics;
-			g.clear();
-			g.beginFill(0x00ffff, 0.5);
-			g.drawRect(0, 0, 480, 800);
-			g.endFill();
-			_LoseSprite.visible = false;
-			addChild(_LoseSprite);
-			
-			var losetFormat:TextFormat = new TextFormat("_sans", "40", "0xFF0000", "true");
-            losetFormat.align = TextFormatAlign.CENTER;
-			
-			var loseLabel:TextField = new TextField();
-			loseLabel.background = true;
-			loseLabel.defaultTextFormat = losetFormat;
-			loseLabel.text = "游戏结束";
-			loseLabel.width = 300;
-			loseLabel.height = 50;
-			loseLabel.x = (480 - loseLabel.width) / 2;
-			loseLabel.y = 300;
-			loseLabel.selectable = false;
-			loseLabel.addEventListener(MouseEvent.CLICK, reStartBtnHandler, false, 0, true);
-			_LoseSprite.addChild(loseLabel);
-			
+						
 			setState(STATE_INIT);
 		}
 		
@@ -235,20 +213,6 @@ package view
 					_PipieTopCanvas.bitmapData.dispose();
 					_PipieTopSprite.removeChild(_PipieTopCanvas);
 					_PipieTopCanvas = null;
-				}
-				
-				if (_PipieTopBack)
-				{
-					_PipieTopBack.bitmapData.dispose();
-					_PipieTopSprite.removeChild(_PipieTopBack);
-					_PipieTopBack = null;
-				}
-				
-				if (_PipieTopFront)
-				{
-					_PipieTopFront.bitmapData.dispose();
-					_PipieTopSprite.removeChild(_PipieTopFront);
-					_PipieTopFront = null;
 				}
 				
 				removeChild(_PipieTopSprite);
@@ -318,7 +282,8 @@ package view
 				
 				case STATE_LOSE:
 					gameStop();
-					_LoseSprite.visible = true;
+					var evtObj:ViewEvent = ViewEvent.createGameOverEvent(_UserScore);
+					this.dispatchEvent(evtObj);
 					break;
 			}
 		}
@@ -403,13 +368,13 @@ package view
 		{
 			//trace("debug initData");
 			_UserScore = 0;
-			_ScoreLabel.text = _UserScore.toString();
-			
 			_ColorNum = 0;
 			_LevelPipieNum = 18;
 			_UserLevel = 0;
 			_CurY = 3;
 			_ShowNumPer = -5;
+			
+			_ScoreLabel.text = _UserScore.toString();
 			
 			for (var i:uint = 0; i < MAX_X; i++)
 			{
@@ -441,15 +406,15 @@ package view
 					{
 						tmpPipieOV.direction = PipieUtils.randomPipieDir(pipieOV.DIR_TOP);
 						tmpPipieOV.color = PipieUtils.randomPipieColor(_ColorNum);
-						tmpPipieOV.x = 30 + tmpPipieOV.px * pipieOV.DIR_COMMON_W;
-						tmpPipieOV.y = 50;
+						tmpPipieOV.x = 30 + tmpPipieOV.px * pipieOV.DIR_COMMON_W + (pipieOV.DIR_COMMON_W - pipieOV.DIR_TOP_W) / 2;
+						tmpPipieOV.y = 65;
 					}
 					else if (j == _CurY+1)
 					{
 						tmpPipieOV.direction = PipieUtils.randomPipieDir(pipieOV.DIR_BOTTOM);
 						tmpPipieOV.color = PipieUtils.randomPipieColor(_ColorNum);
-						tmpPipieOV.x = 30 + tmpPipieOV.px * pipieOV.DIR_COMMON_W;
-						tmpPipieOV.y = 5;
+						tmpPipieOV.x = 30 + tmpPipieOV.px * pipieOV.DIR_COMMON_W + (pipieOV.DIR_COMMON_W - pipieOV.DIR_BOTTOM_W) / 2;
+						tmpPipieOV.y = 0;
 					}
 					else
 					{
@@ -469,47 +434,51 @@ package view
 			{
 				_PipieTopCanvas.bitmapData = new BitmapData(480, 117, true, 0xffffff);
 				
-				var rect:Rectangle = new Rectangle(0, 0, 60, 60);
 				var point:Point = new Point(0, 0);
 				var tmpBD:BitmapData;
 				var PIPIE_TIME_BD:BitmapData = Bitmap(new Assets.PIPIE_TIME()).bitmapData;
 				var tmpPipieOV:pipieOV;
-				var pipieTotalLabel:TextField;
+				
 				_PipieTopCanvas.bitmapData.lock();
+								
+				point.x = -1;
+				point.y = 0;
+				tmpBD = Bitmap(new Assets.LAND_BACK()).bitmapData;
+				_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point,tmpBD,new Point(),true);
+				
 				for (var i:uint = 0; i < MAX_X; i++)
 				{
 					tmpPipieOV = _PipieList[i];
 					if (tmpPipieOV && tmpPipieOV.direction == pipieOV.DIR_TOP && tmpPipieOV.type == pipieOV.STATE_NONE)
 					{
-						if (_PipieTimesList[i] != -1)
+						var randmonNumber:Number = Math.random() * 100;
+						if (_PipieTimesList[i] != -1 || randmonNumber < _ShowNumPer)
 						{
-							point.x = tmpPipieOV.x + 10;
-							point.y = tmpPipieOV.y - 6;
-							_PipieTopCanvas.bitmapData.copyPixels(PIPIE_TIME_BD, rect, point);
-							pipieTotalLabel = _PipieTimesLabelList[i];
-							pipieTotalLabel.text = _PipieTimesList[i].toString();
-						}
-						else
-						{
-							if (Math.random() * 100 < _ShowNumPer)
+							if (_PipieTimesList[i] == -1)
 							{
-								pipieTotalLabel = _PipieTimesLabelList[i];
-			
-								_PipieTimesList[i] = 9;
-								point.x = tmpPipieOV.x + 10;
-								point.y = tmpPipieOV.y - 6;
-								_PipieTopCanvas.bitmapData.copyPixels(PIPIE_TIME_BD, rect, point);
-								pipieTotalLabel.visible = true;
-								pipieTotalLabel.text = _PipieTimesList[i].toString();
+								_PipieTimesList[i] = _CurY * 2;
 							}
+							point.x = tmpPipieOV.x - (PIPIE_TIME_BD.rect.width - pipieOV.DIR_TOP_W) / 2;
+							point.y = tmpPipieOV.y - PIPIE_TIME_BD.rect.height + 3;
+							_PipieTopCanvas.bitmapData.copyPixels(PIPIE_TIME_BD, PIPIE_TIME_BD.rect, point, PIPIE_TIME_BD, new Point(), true);
+							_PipieTimesLabelList[i].visible = true;
+							_PipieTimesLabelList[i].x = point.x;
+							_PipieTimesLabelList[i].y = point.y - 4;
+							_PipieTimesLabelList[i].text = _PipieTimesList[i].toString();
 						}
 								
 						point.x = tmpPipieOV.x;
-						point.y = tmpPipieOV.y + 25;
+						point.y = tmpPipieOV.y;
 						tmpBD = PipieUtils.genPipieBitmapData(tmpPipieOV);
-						_PipieTopCanvas.bitmapData.copyPixels(tmpBD, rect, point);
+						_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point, tmpBD, new Point(), true);
 					}
 				}
+				
+				point.x = -1;
+				point.y = 92;
+				tmpBD = Bitmap(new Assets.LAND_FRONT()).bitmapData;
+				_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point,tmpBD,new Point(),true);
+				
 				_PipieTopCanvas.bitmapData.unlock();
 			}
 		}
@@ -519,9 +488,8 @@ package view
 			//trace("debug drawPipieButtomCanvas");
 			if (_PipieBottomCanvas)
 			{
-				_PipieBottomCanvas.bitmapData = new BitmapData(480, 82, false, 0x4E3728);
+				_PipieBottomCanvas.bitmapData = new BitmapData(480, pipieOV.DIR_BOTTOM_H+5, false, 0x4E3728);
 				
-				var rect:Rectangle = new Rectangle(0, 0, 60, 60);
 				var point:Point = new Point();
 				var tmpBD:BitmapData;
 				var tmpPipieOV:pipieOV;
@@ -536,17 +504,15 @@ package view
 						tmpBD = PipieUtils.genPipieBitmapData(tmpPipieOV);
 						point.x = tmpPipieOV.x;
 						point.y = tmpPipieOV.y;
-						_PipieBottomCanvas.bitmapData.copyPixels(tmpBD, rect, point);
+						_PipieBottomCanvas.bitmapData.copyPixels(tmpBD,tmpBD.rect,point,tmpBD,new Point(),true);
 					}
 				}
 				
-				rect.width = 480;
-				rect.height = 32;
-				point.x = 0;
+				point.x = -1;
 				point.y = 0;
 				tmpBD = Bitmap(new Assets.BOTTOM_LINE()).bitmapData;
-				_PipieBottomCanvas.bitmapData.copyPixels(tmpBD, rect, point);
-				
+				_PipieBottomCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point,tmpBD,new Point(),true);
+
 				_PipieBottomCanvas.bitmapData.unlock();
 			}
 		}
@@ -557,7 +523,6 @@ package view
 			if (_PipieCanvas)
 			{
 				_PipieCanvas.bitmapData = new BitmapData(420, 540, true, 0xffffff);
-				var rect:Rectangle = new Rectangle(0, 0, pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H);
 				var point:Point = new Point();
 				var tmpPipieOV:pipieOV;
 				var tmpBitmapData:BitmapData;
@@ -570,7 +535,7 @@ package view
 						tmpBitmapData = PipieUtils.genPipieBitmapData(tmpPipieOV);
 						point.x = tmpPipieOV.x;
 						point.y = tmpPipieOV.y;
-						_PipieCanvas.bitmapData.copyPixels(tmpBitmapData, rect, point);
+						_PipieCanvas.bitmapData.copyPixels(tmpBitmapData, tmpBitmapData.rect, point);
 					}
 				}
 				_PipieCanvas.bitmapData.unlock();
@@ -595,7 +560,7 @@ package view
 			{
 				changePipieDir(tmpPipieOV);
 				checkPass(tmpPipieOV);
-				
+							
 				if (_LastClickPipie != tmpPipieOV)
 				{
 					var pipieTotalLabel:TextField;
@@ -861,11 +826,9 @@ package view
 				
 				_ContentTopPipie.type = pipieOV.STATE_PASSING;
 				_PipieList[_ContentTopPipie.py * MAX_X + _ContentTopPipie.px] = null;
-				//_PipiePoolList.push(_ContentTopPipie);
 				
 				_ContentBottomPipie.type = pipieOV.STATE_PASSING;
 				_PipieList[_ContentBottomPipie.py * MAX_X + _ContentBottomPipie.px] = null;
-				//_PipiePoolList.push(_ContentBottomPipie);
 				
 				_ContentPipieList = null;
 				
@@ -1033,7 +996,7 @@ package view
 				}								
 			}						
 			return isLevelUp;
-		}	
+		}
 		
 		private function newLevel():void
 		{
@@ -1067,8 +1030,8 @@ package view
 				_ShowNumPer = _ShowNumPerLimit;
 			}
 			
-			_PipieColorTotalCanvas.bitmapData = new BitmapData(44*_ColorNum, 38, true, 0xffffff);
-			var rect:Rectangle = new Rectangle(0, 0, 44, 60);
+			_PipieColorTotalCanvas.bitmapData = new BitmapData((pipieOV.DIR_TOP_W+2)*_ColorNum, pipieOV.DIR_TOP_H, true, 0xffffff);
+			var rect:Rectangle = new Rectangle(0, 0, pipieOV.DIR_TOP_W+2, pipieOV.DIR_TOP_H);
 			var point:Point = new Point();
 			var tmpBitmapData:BitmapData;
 			var pipieTotalLabel:TextField;
@@ -1077,17 +1040,17 @@ package view
 			{
 				tmpBitmapData = PipieUtils.genPipieTopBitmapData(PipieUtils.COLOR_LIST[j]);
 				
-				point.x = j * 44 + (44 - pipieOV.DIR_TOP_W) / 2;
-				point.y = -22;
+				point.x = j * (pipieOV.DIR_TOP_W + 2) + 1;
+				point.y = 0;
 				_PipieColorTotalCanvas.bitmapData.copyPixels(tmpBitmapData, rect, point);
 				
 				pipieTotalLabel = _PipieColorLabelList[j];
 				pipieTotalLabel.visible = true;
-				pipieTotalLabel.x = 480 - (_ColorNum - j) * 44;
+				pipieTotalLabel.x = 480 - (_ColorNum - j) * (pipieOV.DIR_TOP_W + 2);
 				pipieTotalLabel.text = _LevelPipieNum.toString();
 			}
 			_PipieColorTotalCanvas.bitmapData.unlock();
-			_PipieColorTotalCanvas.x = 480 - _ColorNum * 44; 
+			_PipieColorTotalCanvas.x = 480 - _ColorNum * (pipieOV.DIR_TOP_W+2); 
 			
 			initPipieData();
 			
@@ -1113,7 +1076,7 @@ package view
 			//trace("debug setScore");
 			for (var i:uint = 0; i < pipieList.length; i++)
 			{
-				_UserScore += 10 + i * 1;
+				_UserScore += 10*_UserLevel + i * _UserLevel;
 			}
 			_ScoreLabel.text = _UserScore.toString();
 		}
@@ -1137,12 +1100,6 @@ package view
 				_PipieCanvas.bitmapData.copyPixels(tmpBitmapData, midRect, point);
 			}
 			_PipieCanvas.bitmapData.unlock();
-		}
-		
-		private function reStartBtnHandler(e:Event):void
-		{
-			_LoseSprite.visible = false;
-			setState(STATE_INIT);
 		}
 	}
 

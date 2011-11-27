@@ -12,6 +12,8 @@ package events
 		public static const GAME_OVER:String = "ve02";
 		public static const GAME_REPLAY:String = "ve03";
 		public static const GAME_MENU:String = "ve04";
+		public static const GAME_SUBMIT:String = "ve05";
+		public static const GAME_SHOW_SCORE:String = "ve06";
 		
 		private var _score:uint = 0;
 		
@@ -47,6 +49,19 @@ package events
 		public static function createGameMenuEvent(bubbles:Boolean=false, cancelable:Boolean=false):ViewEvent
 		{
 			var eventObj : ViewEvent = new ViewEvent(GAME_MENU, bubbles, cancelable);
+			return eventObj;
+		}
+		
+		public static function createGameSubmitEvent(score:uint,bubbles:Boolean=false, cancelable:Boolean=false):ViewEvent
+		{
+			var eventObj : ViewEvent = new ViewEvent(GAME_SUBMIT, bubbles, cancelable);
+			eventObj._score = score;
+			return eventObj;
+		}
+		
+		public static function createGameShowScoreEvent(bubbles:Boolean=false, cancelable:Boolean=false):ViewEvent
+		{
+			var eventObj : ViewEvent = new ViewEvent(GAME_SHOW_SCORE, bubbles, cancelable);
 			return eventObj;
 		}
 	}

@@ -27,6 +27,8 @@ package
 		private var mainView:ViewMain;
 		private var overView:ViewOver;
 		
+		private var _UserScore:uint = 0;
+		
 		public function Main():void 
 		{
 			if (stage) init();
@@ -37,6 +39,8 @@ package
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
+			
+			trace("game size = ", stage.stageWidth, stage.stageHeight, stage.width, stage.height, this.width, this.height);
 			
 			MttService.initialize(root);
 			MttService.addEventListener(MttService.ETLOGOUT, onLogout); 
@@ -58,17 +62,27 @@ package
 					break;
 					
 				case ViewEvent.GAME_OVER:
-					MttScore.submit(e.score, onFinishSubmit); 
+					_UserScore = e.score;
 					setViewChange(VIEW_STATE_OVER);
 					break;
 					
 				case ViewEvent.GAME_REPLAY:
+					disposeViewMain();
 					setViewChange(VIEW_STATE_MAIN);
 					break;
 					
 				case ViewEvent.GAME_MENU:
 					setViewChange(VIEW_STATE_MENU);
 					break;
+				
+				case ViewEvent.GAME_SUBMIT:
+					MttScore.submit(e.score, onFinishSubmit);
+					break;
+				
+				case ViewEvent.GAME_SHOW_SCORE:
+					//MttScore.
+					break;	
+					
 			}
 		}
 		
@@ -109,7 +123,6 @@ package
 					break;
 					
 				case VIEW_STATE_OVER:
-					disposeViewMain();
 					disposeViewMenu();
 					createViewOver();
 					break;
@@ -122,6 +135,7 @@ package
 			{
 				menuView = new ViewMenu();
 				menuView.addEventListener(ViewEvent.GAME_PLAY, viewEventHandler, false, 0, true);
+				menuView.addEventListener(ViewEvent.GAME_SHOW_SCORE, viewEventHandler, false, 0, true);
 				addChild(menuView);
 			}
 		}
@@ -131,6 +145,7 @@ package
 			if (menuView)
 			{
 				menuView.removeEventListener(ViewEvent.GAME_PLAY, viewEventHandler);
+				menuView.removeEventListener(ViewEvent.GAME_SHOW_SCORE, viewEventHandler);
 				removeChild(menuView);
 				menuView = null;
 			}
@@ -160,7 +175,8 @@ package
 		{
 			if (!overView)
 			{
-				overView = new ViewOver();
+				overView = new ViewOver(_UserScore);
+				overView.addEventListener(ViewEvent.GAME_SUBMIT, viewEventHandler, false, 0, true);
 				overView.addEventListener(ViewEvent.GAME_REPLAY, viewEventHandler, false, 0, true);
 				overView.addEventListener(ViewEvent.GAME_MENU, viewEventHandler, false, 0, true);
 				addChild(overView);
@@ -171,6 +187,7 @@ package
 		{
 			if (overView)
 			{
+				overView.removeEventListener(ViewEvent.GAME_SUBMIT, viewEventHandler);
 				overView.removeEventListener(ViewEvent.GAME_REPLAY, viewEventHandler);
 				overView.removeEventListener(ViewEvent.GAME_MENU, viewEventHandler);
 				removeChild(overView);

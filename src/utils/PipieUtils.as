@@ -126,23 +126,26 @@ package utils
 		public static function genPipieBitmapData(pipie:pipieOV):BitmapData
 		{
 			//trace("debug genPipieBitmapData");
-			var returnBitmapData:BitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0);
-			var rect:Rectangle = new Rectangle(0, 0, pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H);
+			var returnBitmapData:BitmapData; 
+			var rect:Rectangle;
 			var point:Point = new Point(0, 0);
 			var mc:Matrix;
 			switch(pipie.direction)
 			{
 				case pipieOV.DIR_12:
-					rect.x = pipieOV.DIR_COMMON_W;
+					returnBitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0); 
+					rect = new Rectangle(pipieOV.DIR_COMMON_W, 0, pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H);
 					returnBitmapData.copyPixels(PIPIE_MID_BD, rect, point);
 					break;
 				case pipieOV.DIR_13:
+					returnBitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0); 
 					mc = new Matrix();
 					mc.rotate(Math.PI / 2);
 					mc.translate(pipieOV.DIR_COMMON_W, 0);
 					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_23:
+					returnBitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0); 
 					mc = new Matrix();
 					mc.translate(-pipieOV.DIR_COMMON_W, 0);
 					mc.rotate(Math.PI / 2);
@@ -150,9 +153,12 @@ package utils
 					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_24:
+					returnBitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0); 
+					rect = new Rectangle(0, 0, pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H);
 					returnBitmapData.copyPixels(PIPIE_MID_BD, rect, point);
 					break;
 				case pipieOV.DIR_34:
+					returnBitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0); 
 					mc = new Matrix();
 					mc.translate(-pipieOV.DIR_COMMON_W, 0);
 					mc.rotate(Math.PI);
@@ -160,6 +166,7 @@ package utils
 					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_41:
+					returnBitmapData = new BitmapData(pipieOV.DIR_COMMON_W, pipieOV.DIR_COMMON_H, true, 0); 
 					mc = new Matrix();
 					mc.translate(-pipieOV.DIR_COMMON_W, 0);
 					mc.rotate(-Math.PI/2);
@@ -167,20 +174,14 @@ package utils
 					returnBitmapData.draw(PIPIE_MID_BD, mc);
 					break;
 				case pipieOV.DIR_TOP:
-					rect.width = pipieOV.DIR_TOP_W;
-					rect.x = pipie.color * pipieOV.DIR_TOP_W;
-					point.x = (pipieOV.DIR_COMMON_W - pipieOV.DIR_TOP_W) / 2;
+					returnBitmapData = new BitmapData(pipieOV.DIR_TOP_W, pipieOV.DIR_TOP_H, true, 0); 
+					rect = new Rectangle(pipie.color * pipieOV.DIR_TOP_W, 0, pipieOV.DIR_TOP_W, pipieOV.DIR_TOP_H);
 					returnBitmapData.copyPixels(PIPIE_TOP_BD, rect, point);
 					break;
 				case pipieOV.DIR_BOTTOM:
-					rect.width = pipieOV.DIR_BOTTOM_W;
-					rect.x = pipie.color * pipieOV.DIR_BOTTOM_W;
-					point.x = (pipieOV.DIR_COMMON_W - pipieOV.DIR_BOTTOM_W) / 2;
+					returnBitmapData = new BitmapData(pipieOV.DIR_BOTTOM_W, pipieOV.DIR_BOTTOM_H, true, 0); 
+					rect = new Rectangle(pipie.color * pipieOV.DIR_BOTTOM_W, 0, pipieOV.DIR_BOTTOM_W, pipieOV.DIR_BOTTOM_H);
 					returnBitmapData.copyPixels(PIPIE_BOTTOM_BD, rect, point);
-					break;
-				default :
-					rect.x = pipieOV.DIR_COMMON_W;
-					returnBitmapData.copyPixels(PIPIE_MID_BD, rect, point);
 					break;
 			}
 			return returnBitmapData;

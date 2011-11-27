@@ -132,7 +132,8 @@ package view
 		
 		private function rankBtnClickHandler(e:MouseEvent):void
 		{
-			
+			var evtObj:ViewEvent = ViewEvent.createGameShowScoreEvent();
+			this.dispatchEvent(evtObj);
 		}
 		
 		private function infoBtnClickHandler(e:MouseEvent):void

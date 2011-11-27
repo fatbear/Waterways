@@ -26,10 +26,10 @@ package datamodels
 		public static const COLOR_YELLOW:uint = 3;
 		public static const COLOR_PURPLE:uint = 4;
 		
-		public static const DIR_TOP_W:Number = 32;
-		public static const DIR_TOP_H:Number = 60;
-		public static const DIR_BOTTOM_W:Number = 36;
-		public static const DIR_BOTTOM_H:Number = 57;
+		public static const DIR_TOP_W:Number = 40;
+		public static const DIR_TOP_H:Number = 54;
+		public static const DIR_BOTTOM_W:Number = 52;
+		public static const DIR_BOTTOM_H:Number = 88;
 		public static const DIR_COMMON_W:Number = 60;
 		public static const DIR_COMMON_H:Number = 60;
 		
