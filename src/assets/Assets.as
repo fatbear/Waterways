@@ -49,6 +49,9 @@ package assets
 		[Embed(source="pipieTime.png")]
 		public static const PIPIE_TIME : Class;
 		
+		[Embed(source="stopGameBtn.png")]
+		public static const STOP_BTN : Class;
+
 		//游戏结束
 		[Embed(source="GameOverTitle.png")]
 		public static const OVER_TITLE : Class
@@ -61,6 +64,10 @@ package assets
 		
 		[Embed(source="BackToMenuBtn.png")]
 		public static const OVER_MENU_BTN : Class
+		
+		
+		[Embed(source = "turn.mp3")]
+		public static const SOUND_CLICK:Class;
 	}
 
 }

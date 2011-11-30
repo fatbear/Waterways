@@ -1,7 +1,16 @@
 package 
 {
+	import assets.Assets;
+	import events.CustomEventSound;
 	import flash.display.Sprite;
+	import flash.display.StageAlign;
+	import flash.display.StageDisplayState;
+	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.text.TextField;
+	import flash.text.TextFieldAutoSize;
+	import flash.text.TextFormat;
+	import utils.SoundManager;
 	import view.ViewMain;
 	import view.ViewMenu;
 	import view.ViewOver;
@@ -27,7 +36,16 @@ package
 		private var mainView:ViewMain;
 		private var overView:ViewOver;
 		
+		private var _DebugLabel:TextField;
+		private var _StageW:Number;
+		private var _StageH:Number;
+		
 		private var _UserScore:uint = 0;
+		
+		private var _SoundManager:SoundManager;
+		
+		//custom sounds
+		public static const SOUND_CLICK:String = "Click";
 		
 		public function Main():void 
 		{
@@ -39,12 +57,21 @@ package
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
+
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.align = StageAlign.TOP_LEFT;
 			
-			trace("game size = ", stage.stageWidth, stage.stageHeight, stage.width, stage.height, this.width, this.height);
+			_StageW = stage.stageWidth;
+			_StageH = stage.stageHeight;
 			
 			MttService.initialize(root);
 			MttService.addEventListener(MttService.ETLOGOUT, onLogout); 
- 
+			MttService.addEventListener(MttService.ETAGAIN, onAgain); 
+			
+			_SoundManager = new SoundManager();
+			_SoundManager.addSound(SOUND_CLICK, new Assets.SOUND_CLICK());
+			this.addEventListener(CustomEventSound.PLAY_SOUND, customEventSoundHandler, false, 0, true);
+			this.addEventListener(CustomEventSound.STOP_SOUND, customEventSoundHandler, false, 0, true);
 			setViewChange(VIEW_STATE_MENU);
 		}
 		
@@ -52,6 +79,25 @@ package
 		{ 
 			MttService.login(); 
 		} 
+		
+		private function onAgain(e:Event):void
+		{
+			
+		}
+		
+		private function customEventSoundHandler(e:CustomEventSound):void
+		{
+			switch(e.type)
+			{
+				case CustomEventSound.PLAY_SOUND:
+					_SoundManager.playSound(e.name, e.isSoundTrack, e.loops, e.offset, e.volume);
+					break;
+					
+				case CustomEventSound.STOP_SOUND:
+					_SoundManager.stopSound(e.name, e.isSoundTrack);
+					break;
+			}
+		}
 		
 		private function viewEventHandler(e:ViewEvent):void
 		{
@@ -76,11 +122,13 @@ package
 					break;
 				
 				case ViewEvent.GAME_SUBMIT:
-					MttScore.submit(e.score, onFinishSubmit);
+					//MttScore.submit(e.score, onFinishSubmit);
+					MttScore.show(e.score, {x:0, y:0, w:480, h:800});
 					break;
 				
 				case ViewEvent.GAME_SHOW_SCORE:
-					//MttScore.
+					//createDebugLabel("ViewEvent.GAME_SHOW_SCORE")
+					//MttScore.show(1, {x:0, y:0, w:240, h:240});
 					break;	
 					
 			}
@@ -114,6 +162,7 @@ package
 					disposeViewMain();
 					disposeViewOver();
 					crateViewMenu();
+					//createDebugLabel(stage.stageWidth+","+stage.stageHeight+","+stage.width+","+stage.height+","+this.width+","+this.height)
 					break;
 					
 				case VIEW_STATE_MAIN:
@@ -193,6 +242,23 @@ package
 				removeChild(overView);
 				overView = null;
 			}
+		}
+		
+		private function createDebugLabel(newString:String):void
+		{
+			if (!_DebugLabel)
+			{
+				var scoreFormat:TextFormat = new TextFormat("_sans", "20", "0x009900", "true");
+				_DebugLabel = new TextField();
+				_DebugLabel.width = 100;
+				_DebugLabel.autoSize = TextFieldAutoSize.LEFT;
+				_DebugLabel.height = 200;
+				_DebugLabel.selectable = false;
+				_DebugLabel.defaultTextFormat = scoreFormat;
+			}
+			addChild(_DebugLabel);
+			
+			_DebugLabel.appendText(newString + "|");
 		}
 	}
 	

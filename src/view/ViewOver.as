@@ -1,6 +1,7 @@
 package view 
 {
 	import assets.Assets;
+	import events.CustomEventSound;
 	import events.ViewEvent;
 	import flash.display.Bitmap;
 	import flash.display.Graphics;
@@ -63,7 +64,7 @@ package view
 			_LoseText.y = 100;
 			addChild(_LoseText);
 			
-			var scoreFormat:TextFormat = new TextFormat("_sans", "40", "0x009900", "true");
+			var scoreFormat:TextFormat = new TextFormat("_sans", "40", "0xFF0000", "true");
             scoreFormat.align = TextFormatAlign.CENTER;
 			
 			_ScoreLabel = new TextField();
@@ -153,18 +154,24 @@ package view
 		
 		private function sumbitScoreBtnClickHandler(e:MouseEvent):void
 		{
+			this.dispatchEvent( new CustomEventSound(CustomEventSound.PLAY_SOUND, Main.SOUND_CLICK, false, 1, 0, 0.5) );
+			
 			var evtObj:ViewEvent = ViewEvent.createGameSubmitEvent(_UserScore);
 			this.dispatchEvent(evtObj);
 		}
 		
 		private function replayBtnClickHandler(e:MouseEvent):void
 		{
+			this.dispatchEvent( new CustomEventSound(CustomEventSound.PLAY_SOUND, Main.SOUND_CLICK, false, 1, 0, 0.5) );
+			
 			var evtObj:ViewEvent = ViewEvent.createGameReplayEvent();
 			this.dispatchEvent(evtObj);
 		}
 		
 		private function backToMenuClickHandler(e:MouseEvent):void
 		{
+			this.dispatchEvent( new CustomEventSound(CustomEventSound.PLAY_SOUND, Main.SOUND_CLICK, false, 1, 0, 0.5) );
+			
 			var evtObj:ViewEvent = ViewEvent.createGameMenuEvent();
 			this.dispatchEvent(evtObj);
 		}

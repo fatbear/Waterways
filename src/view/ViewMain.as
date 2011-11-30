@@ -2,11 +2,13 @@ package view
 {
 	import assets.Assets;
 	import datamodels.pipieOV;
+	import events.CustomEventSound;
 	import events.ViewEvent;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
+	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -37,7 +39,7 @@ package view
 		
 		private const MAX_X:uint = 7;
 		private const MIN_Y:uint = 4;
-		private const MAX_Y:uint = 8;
+		private const MAX_Y:uint = 7;
 		
 		private var _StageW:Number = 480;
 		private var _StageH:Number = 800;
@@ -63,6 +65,10 @@ package view
 		private var _PipieColorTotalCanvas:Bitmap;
 		private var _PipieColorLabelList:Vector.<TextField>;
 		private var _PipieTimesLabelList:Vector.<TextField>;
+		private var _StopBtn:SimpleButton;
+		private var _TimeLineBar:Bitmap;
+		private var _TimeLineShape:Shape;
+		
 		
 		private var _ShowContentFrame:int = 30;
 		private var _UpCanvasFrame:int = 6;
@@ -72,20 +78,23 @@ package view
 		private var _LevelPipieNum:uint = 9;
 		private var _LevelPipitLimit:uint = 9;
 		private var _LevelPipieIncrease:uint = 1;
-		private var _ShowNumPer:int = -5;
-		private var _ShowNumPerLimit:uint = 20;
-		private var _ShowNumPerIncrease:uint = 5;
+		private var _ShowNumPer:int = -2;
+		private var _ShowNumPerLimit:uint = 30;
+		private var _ShowNumPerIncrease:uint = 2;
+		private var _ShowNum:int = 0;
 		private var _CurY:uint = 3;
 		
 		private var _UserCleanColorPipie:Vector.<uint>;
 		private var _UserScore:uint = 0;
 		private var _UserLevel:uint = 0;
+		private var _UserTimeLimit:uint = 30 * 60 * 1;
+		private var _UserTime:uint = 0;
 		
 		private var _PipieTimesList:Vector.<int> = new Vector.<int>(7);
-			
+		
 		public function ViewMain() 
 		{
-			trace("game size = ", this.width, this.height);
+			//trace("game size = ", this.width, this.height);
 			
 			this.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
 			crateUI();
@@ -99,7 +108,7 @@ package view
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
 			
-			trace("game size = ", stage.stageWidth, stage.stageHeight, stage.width, stage.height, this.width, this.height);
+			//trace("game size = ", stage.stageWidth, stage.stageHeight, stage.width, stage.height, this.width, this.height);
 		}
 		
 		public function dispose():void
@@ -120,7 +129,7 @@ package view
 			_GroundShape = new Shape();
 			var g:Graphics = _GroundShape.graphics;
 			g.beginBitmapFill(_GroundBitmap.bitmapData);
-			g.drawRect(0, 0, _StageW, 540);
+			g.drawRect(0, 0, _StageW, MAX_Y*pipieOV.DIR_COMMON_H);
 			g.endFill();
 			_GroundShape.y = 117;
 			_PipieTopSprite.addChild(_GroundShape);
@@ -145,11 +154,11 @@ package view
 			}
 			
 			_PipieCanvas = new Bitmap();
-			_PipieCanvas.x = 30;
+			_PipieCanvas.x = (480 - MAX_X * pipieOV.DIR_COMMON_W) / 2;
 			addChild(_PipieCanvas);
 			
 			_PipieBottomCanvas = new Bitmap();
-			_PipieBottomCanvas.y = 800 - (pipieOV.DIR_BOTTOM_H + 5);
+			_PipieBottomCanvas.y = 800 - (pipieOV.DIR_BOTTOM_H + 41);
 			addChild(_PipieBottomCanvas);
 			
 			_PipieColorTotalSprite = new Sprite();
@@ -176,11 +185,39 @@ package view
 			var scoreFormat:TextFormat = new TextFormat("_sans", "40", "0x009900", "true");
             scoreFormat.align = TextFormatAlign.LEFT;
 			_ScoreLabel = new TextField();
+			_ScoreLabel.width = 480;
 			_ScoreLabel.selectable = false;
 			_ScoreLabel.defaultTextFormat = scoreFormat;
 			_ScoreLabel.x = 5;
 			addChild(_ScoreLabel);
-						
+			
+			_StopBtn = new SimpleButton();
+			_StopBtn.upState = new Assets.STOP_BTN() as Bitmap;
+			_StopBtn.overState = new Assets.STOP_BTN() as Bitmap;
+			_StopBtn.downState = new Assets.STOP_BTN() as Bitmap;
+			_StopBtn.hitTestState = new Assets.STOP_BTN() as Bitmap;
+			_StopBtn.visible = false;
+			addChild(_StopBtn);
+			_StopBtn.addEventListener(MouseEvent.CLICK, stopBtnClickHandler, false, 0, true);
+			
+			
+			_TimeLineShape = new Shape();
+			g = _TimeLineShape.graphics;
+			g.clear();
+			g.beginFill(0x999999)
+			g.drawRect(0, 0, 360, 18);
+			g.endFill();
+			addChild(_TimeLineShape);
+			
+			_TimeLineBar = new Assets.TIMER_LINE();
+			_TimeLineBar.y = 800 - _TimeLineBar.height;
+			addChild(_TimeLineBar);
+			
+			
+			
+			_TimeLineShape.x = _TimeLineBar.x + 6;
+			_TimeLineShape.y = _TimeLineBar.y + 9;
+			
 			setState(STATE_INIT);
 		}
 		
@@ -215,6 +252,18 @@ package view
 					_PipieTopCanvas = null;
 				}
 				
+				var pipieTimesLabel:TextField;
+				for (var i:uint = 0; i < _PipieTimesLabelList.length; i++)
+				{
+					pipieTimesLabel = _PipieTimesLabelList[i];
+					if (pipieTimesLabel)
+					{
+						_PipieTopSprite.removeChild(pipieTimesLabel);
+						pipieTimesLabel = null;
+					}
+					_PipieTimesLabelList = null;
+				}
+				
 				removeChild(_PipieTopSprite);
 				_PipieTopSprite = null;
 			}
@@ -233,10 +282,39 @@ package view
 				_PipieCanvas = null;
 			}
 			
+			if (_PipieColorTotalSprite)
+			{
+				var pipieTotalLabel:TextField;
+				for (var j:uint = 0; j < _PipieColorLabelList.length; j++)
+				{
+					pipieTotalLabel = _PipieColorLabelList[j];
+					if (pipieTotalLabel)
+					{
+						_PipieColorTotalSprite.removeChild(pipieTotalLabel);
+						pipieTotalLabel = null;
+					}
+				}
+				_PipieColorLabelList = null;
+				
+				_PipieColorTotalCanvas.bitmapData.dispose();
+				_PipieColorTotalSprite.removeChild(_PipieColorTotalCanvas);
+				_PipieColorTotalCanvas = null;
+				
+				removeChild(_PipieColorTotalSprite);
+				_PipieColorTotalSprite = null;
+			}
+			
 			if (_ScoreLabel)
 			{
 				removeChild(_ScoreLabel);
 				_ScoreLabel = null;
+			}
+			
+			if (_StopBtn)
+			{
+				_StopBtn.removeEventListener(MouseEvent.CLICK, stopBtnClickHandler);
+				removeChild(_StopBtn);
+				_StopBtn = null;
 			}
 		}
 		
@@ -265,8 +343,7 @@ package view
 					
 				case STATE_DOWN:
 					gameStop();
-					drawPipieTopCanvas()
-					drawPipieButtomCanvas();
+					drawPipieTopAndBottomCanvas();
 					drawPipieCanvas();
 					movePipieDown();
 					replacePipies();
@@ -299,6 +376,20 @@ package view
 					break;
 					
 				case STATE_PLAY:
+					_UserTime++;
+					var g:Graphics = _TimeLineShape.graphics;
+					g.clear();
+					g.beginFill(0x999999)
+					g.drawRect(0, 0, 360, 18);
+					g.endFill();
+					g.beginFill(0x009900)
+					g.drawRect(0, 0, 360*_UserTime/_UserTimeLimit , 18);
+					g.endFill();
+					if (_UserTime == _UserTimeLimit)
+					{
+						_UserTime = 0;
+						setState(STATE_LOSE);
+					}
 					break;
 				
 				case STATE_PASS:
@@ -322,8 +413,7 @@ package view
 					drawPipieCanvas();
 					if (!checkForFallingPipies()) 
 					{						
-						drawPipieTopCanvas()
-						drawPipieButtomCanvas();
+						drawPipieTopAndBottomCanvas();
 						genInitPipieContent();
 						setState(STATE_PLAY);
 					}		
@@ -335,6 +425,8 @@ package view
 					_UpCanvasFrame--;
 					if (_UpCanvasFrame == 0)
 					{
+						_PipieCanvas.y = _PipieBottomCanvas.y - _CurY * pipieOV.DIR_COMMON_H;
+						_PipieTopSprite.y = _PipieCanvas.y - 117;
 						_UpCanvasFrame = 6;
 						setState(STATE_PLAY);
 					}
@@ -367,20 +459,14 @@ package view
 		private function initData():void
 		{
 			//trace("debug initData");
-			_UserScore = 0;
-			_ColorNum = 0;
-			_LevelPipieNum = 18;
-			_UserLevel = 0;
-			_CurY = 3;
-			_ShowNumPer = -5;
-			
 			_ScoreLabel.text = _UserScore.toString();
 			
+			var colorLabelLen:uint = _PipieColorLabelList.length;
 			for (var i:uint = 0; i < MAX_X; i++)
 			{
 				_PipieTimesList[i] = -1;
 				_PipieTimesLabelList[i].visible = false;
-				if (i < _PipieColorLabelList.length)
+				if (i < colorLabelLen)
 				{
 					_PipieColorLabelList[i].visible = false;
 				}
@@ -406,14 +492,14 @@ package view
 					{
 						tmpPipieOV.direction = PipieUtils.randomPipieDir(pipieOV.DIR_TOP);
 						tmpPipieOV.color = PipieUtils.randomPipieColor(_ColorNum);
-						tmpPipieOV.x = 30 + tmpPipieOV.px * pipieOV.DIR_COMMON_W + (pipieOV.DIR_COMMON_W - pipieOV.DIR_TOP_W) / 2;
+						tmpPipieOV.x = _PipieCanvas.x + tmpPipieOV.px * pipieOV.DIR_COMMON_W + (pipieOV.DIR_COMMON_W - pipieOV.DIR_TOP_W) / 2;
 						tmpPipieOV.y = 65;
 					}
 					else if (j == _CurY+1)
 					{
 						tmpPipieOV.direction = PipieUtils.randomPipieDir(pipieOV.DIR_BOTTOM);
 						tmpPipieOV.color = PipieUtils.randomPipieColor(_ColorNum);
-						tmpPipieOV.x = 30 + tmpPipieOV.px * pipieOV.DIR_COMMON_W + (pipieOV.DIR_COMMON_W - pipieOV.DIR_BOTTOM_W) / 2;
+						tmpPipieOV.x = _PipieCanvas.x + tmpPipieOV.px * pipieOV.DIR_COMMON_W + (pipieOV.DIR_COMMON_W - pipieOV.DIR_BOTTOM_W) / 2;
 						tmpPipieOV.y = 0;
 					}
 					else
@@ -427,102 +513,93 @@ package view
 			}
 		}
 		
-		private function drawPipieTopCanvas():void
+		private function drawPipieTopAndBottomCanvas():void
 		{
-			//trace("debug drawPipieTopCanvas");
-			if (_PipieTopCanvas)
+			//trace("debug drawPipieTopAndBottomCanvas");
+			if (_PipieTopCanvas && _PipieBottomCanvas)
 			{
+				//var PIPIE_TIME_BD:BitmapData = Bitmap(new Assets.PIPIE_TIME()).bitmapData;
 				_PipieTopCanvas.bitmapData = new BitmapData(480, 117, true, 0xffffff);
+				_PipieBottomCanvas.bitmapData = new BitmapData(480, pipieOV.DIR_BOTTOM_H+41, true, 0x4E3728);
 				
 				var point:Point = new Point(0, 0);
+				var topTmpPipieOV:pipieOV;
+				var bottomTmpPipieOV:pipieOV;
 				var tmpBD:BitmapData;
-				var PIPIE_TIME_BD:BitmapData = Bitmap(new Assets.PIPIE_TIME()).bitmapData;
-				var tmpPipieOV:pipieOV;
+				
 				
 				_PipieTopCanvas.bitmapData.lock();
-								
+				_PipieBottomCanvas.bitmapData.lock();
+				
 				point.x = -1;
 				point.y = 0;
 				tmpBD = Bitmap(new Assets.LAND_BACK()).bitmapData;
-				_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point,tmpBD,new Point(),true);
+				_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point, tmpBD, new Point(), true);
 				
 				for (var i:uint = 0; i < MAX_X; i++)
 				{
-					tmpPipieOV = _PipieList[i];
-					if (tmpPipieOV && tmpPipieOV.direction == pipieOV.DIR_TOP && tmpPipieOV.type == pipieOV.STATE_NONE)
+					topTmpPipieOV = _PipieList[i];
+					if (topTmpPipieOV && topTmpPipieOV.direction == pipieOV.DIR_TOP && topTmpPipieOV.type == pipieOV.STATE_NONE)
 					{
-						var randmonNumber:Number = Math.random() * 100;
-						if (_PipieTimesList[i] != -1 || randmonNumber < _ShowNumPer)
+						/*
+						if (_ShowNum < _UserLevel)
 						{
-							if (_PipieTimesList[i] == -1)
+							var randmonNumber:Number = Math.random() * 100 + _ShowNum * 2;
+							if (_PipieTimesList[i] != -1 || randmonNumber < _ShowNumPer)
 							{
-								_PipieTimesList[i] = _CurY * 2;
+								if (_PipieTimesList[i] == -1)
+								{
+									_PipieTimesList[i] = _CurY * 2;
+									_ShowNum++;
+								}
+								point.x = topTmpPipieOV.x - (PIPIE_TIME_BD.rect.width - pipieOV.DIR_TOP_W) / 2;
+								point.y = topTmpPipieOV.y - PIPIE_TIME_BD.rect.height + 3;
+								_PipieTopCanvas.bitmapData.copyPixels(PIPIE_TIME_BD, PIPIE_TIME_BD.rect, point, PIPIE_TIME_BD, new Point(), true);
+								_PipieTimesLabelList[i].visible = true;
+								_PipieTimesLabelList[i].x = point.x;
+								_PipieTimesLabelList[i].y = point.y - 4;
+								_PipieTimesLabelList[i].text = _PipieTimesList[i].toString();
 							}
-							point.x = tmpPipieOV.x - (PIPIE_TIME_BD.rect.width - pipieOV.DIR_TOP_W) / 2;
-							point.y = tmpPipieOV.y - PIPIE_TIME_BD.rect.height + 3;
-							_PipieTopCanvas.bitmapData.copyPixels(PIPIE_TIME_BD, PIPIE_TIME_BD.rect, point, PIPIE_TIME_BD, new Point(), true);
-							_PipieTimesLabelList[i].visible = true;
-							_PipieTimesLabelList[i].x = point.x;
-							_PipieTimesLabelList[i].y = point.y - 4;
-							_PipieTimesLabelList[i].text = _PipieTimesList[i].toString();
 						}
+						*/
 								
-						point.x = tmpPipieOV.x;
-						point.y = tmpPipieOV.y;
-						tmpBD = PipieUtils.genPipieBitmapData(tmpPipieOV);
+						point.x = topTmpPipieOV.x;
+						point.y = topTmpPipieOV.y;
+						tmpBD = PipieUtils.genPipieBitmapData(topTmpPipieOV);
 						_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point, tmpBD, new Point(), true);
+					}
+					
+					bottomTmpPipieOV = _PipieList[(_CurY+1)*MAX_X+i];
+					if (bottomTmpPipieOV && bottomTmpPipieOV.direction == pipieOV.DIR_BOTTOM && bottomTmpPipieOV.type == pipieOV.STATE_NONE)
+					{
+						tmpBD = PipieUtils.genPipieBitmapData(bottomTmpPipieOV);
+						point.x = bottomTmpPipieOV.x;
+						point.y = bottomTmpPipieOV.y;
+						_PipieBottomCanvas.bitmapData.copyPixels(tmpBD,tmpBD.rect,point,tmpBD,new Point(),true);
 					}
 				}
 				
 				point.x = -1;
 				point.y = 92;
 				tmpBD = Bitmap(new Assets.LAND_FRONT()).bitmapData;
-				_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point,tmpBD,new Point(),true);
+				_PipieTopCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point, tmpBD, new Point(), true);
 				
-				_PipieTopCanvas.bitmapData.unlock();
-			}
-		}
-		
-		private function drawPipieButtomCanvas():void
-		{
-			//trace("debug drawPipieButtomCanvas");
-			if (_PipieBottomCanvas)
-			{
-				_PipieBottomCanvas.bitmapData = new BitmapData(480, pipieOV.DIR_BOTTOM_H+5, false, 0x4E3728);
-				
-				var point:Point = new Point();
-				var tmpBD:BitmapData;
-				var tmpPipieOV:pipieOV;
-				
-				_PipieBottomCanvas.bitmapData.lock();
-				
-				for (var i:uint = 0; i < MAX_X; i++)
-				{
-					tmpPipieOV = _PipieList[(_CurY+1)*MAX_X+i];
-					if (tmpPipieOV && tmpPipieOV.direction == pipieOV.DIR_BOTTOM)
-					{
-						tmpBD = PipieUtils.genPipieBitmapData(tmpPipieOV);
-						point.x = tmpPipieOV.x;
-						point.y = tmpPipieOV.y;
-						_PipieBottomCanvas.bitmapData.copyPixels(tmpBD,tmpBD.rect,point,tmpBD,new Point(),true);
-					}
-				}
-				
-				point.x = -1;
+				point.x = 0;
 				point.y = 0;
 				tmpBD = Bitmap(new Assets.BOTTOM_LINE()).bitmapData;
-				_PipieBottomCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point,tmpBD,new Point(),true);
-
+				_PipieBottomCanvas.bitmapData.copyPixels(tmpBD, tmpBD.rect, point, tmpBD, new Point(), true);
+				
+				_PipieTopCanvas.bitmapData.unlock();
 				_PipieBottomCanvas.bitmapData.unlock();
 			}
 		}
-	
+
 		private function drawPipieCanvas():void
 		{
 			//trace("debug drawPipieCanvas");
 			if (_PipieCanvas)
 			{
-				_PipieCanvas.bitmapData = new BitmapData(420, 540, true, 0xffffff);
+				_PipieCanvas.bitmapData = new BitmapData(MAX_X*pipieOV.DIR_COMMON_W, _CurY*pipieOV.DIR_COMMON_H, true, 0xffffff);
 				var point:Point = new Point();
 				var tmpPipieOV:pipieOV;
 				var tmpBitmapData:BitmapData;
@@ -540,6 +617,31 @@ package view
 				}
 				_PipieCanvas.bitmapData.unlock();
 			}
+		}
+		
+		private function drawTotalPipieCanvas():void
+		{
+			_PipieColorTotalCanvas.bitmapData = new BitmapData((pipieOV.DIR_TOP_W + 2) * _ColorNum, pipieOV.DIR_TOP_H, true, 0xffffff);
+			var rect:Rectangle = new Rectangle(0, 0, pipieOV.DIR_TOP_W+2, pipieOV.DIR_TOP_H);
+			var point:Point = new Point();
+			var tmpBD:BitmapData;
+			var pipieTotalLabel:TextField;
+			_PipieColorTotalCanvas.bitmapData.lock();
+			for (var j:uint = 0; j < _ColorNum; j++)
+			{
+				tmpBD = PipieUtils.genPipieTopBitmapData(PipieUtils.COLOR_LIST[j]);
+				
+				point.x = j * (pipieOV.DIR_TOP_W + 2) + 1;
+				point.y = 0;
+				_PipieColorTotalCanvas.bitmapData.copyPixels(tmpBD, rect, point);
+				
+				pipieTotalLabel = _PipieColorLabelList[j];
+				pipieTotalLabel.visible = true;
+				pipieTotalLabel.x = 480 - (_ColorNum - j) * (pipieOV.DIR_TOP_W + 2) -5;
+				pipieTotalLabel.text = _LevelPipieNum.toString();
+			}
+			_PipieColorTotalCanvas.bitmapData.unlock();
+			_PipieColorTotalCanvas.x = 480 - _ColorNum * (pipieOV.DIR_TOP_W + 2) - 5;
 		}
 		
 		private function gamePlay():void
@@ -560,7 +662,8 @@ package view
 			{
 				changePipieDir(tmpPipieOV);
 				checkPass(tmpPipieOV);
-							
+				
+				/*
 				if (_LastClickPipie != tmpPipieOV)
 				{
 					var pipieTotalLabel:TextField;
@@ -580,19 +683,21 @@ package view
 					
 					_LastClickPipie = tmpPipieOV;
 				}
+				*/
+				this.dispatchEvent( new CustomEventSound(CustomEventSound.PLAY_SOUND, Main.SOUND_CLICK, false, 1, 0, 0.5) );	
 			}
 		}
 		
 		private function findPipieOV(mouseX:Number,mouseY:Number):pipieOV
 		{
 			//trace("debug findPipieOV");
-			if (mouseX<30|| mouseX>450 || mouseY<(_PipieBottomCanvas.y - _CurY*pipieOV.DIR_COMMON_H) || mouseY > _PipieBottomCanvas.y)
+			if (mouseX<=_PipieCanvas.x|| mouseX>=(480-_PipieCanvas.x) || mouseY<(_PipieBottomCanvas.y - _CurY*pipieOV.DIR_COMMON_H) || mouseY > _PipieBottomCanvas.y)
 			{
 				return null;
 			}
 			else
 			{
-				var pipieX:uint = int((mouseX - 30) / pipieOV.DIR_COMMON_W);
+				var pipieX:uint = int((mouseX - _PipieCanvas.x) / pipieOV.DIR_COMMON_W);
 				var pipieY:uint = int((mouseY - _PipieCanvas.y) / pipieOV.DIR_COMMON_H) + 1;
 				var index:uint = pipieY * MAX_X + pipieX;
 				//trace(mouseX,mouseY,pipieX,pipieY,index)
@@ -855,8 +960,17 @@ package view
 					pipieTotalLabel.text = pipieTotal.toString();
 				}
 				
-				_PipieTimesList[_ContentTopPipie.px] = -1;
-				_PipieTimesLabelList[_ContentTopPipie.px].visible = false;
+				if (_PipieTimesList[_ContentTopPipie.px] != -1)
+				{
+					_PipieTimesList[_ContentTopPipie.px] = -1;
+					_PipieTimesLabelList[_ContentTopPipie.px].visible = false;
+					_ShowNum--;
+					if (_ShowNum < 0 )
+					{
+						_ShowNum = 0;
+					}
+				}
+				
 			}
 		}
 		
@@ -1000,6 +1114,7 @@ package view
 		
 		private function newLevel():void
 		{
+			_UserScore += _UserLevel * _UserLevel * 100;
 			_UserLevel++;
 			_ColorNum++;
 			if (_ColorNum > _ColorNumLimit)
@@ -1030,33 +1145,11 @@ package view
 				_ShowNumPer = _ShowNumPerLimit;
 			}
 			
-			_PipieColorTotalCanvas.bitmapData = new BitmapData((pipieOV.DIR_TOP_W+2)*_ColorNum, pipieOV.DIR_TOP_H, true, 0xffffff);
-			var rect:Rectangle = new Rectangle(0, 0, pipieOV.DIR_TOP_W+2, pipieOV.DIR_TOP_H);
-			var point:Point = new Point();
-			var tmpBitmapData:BitmapData;
-			var pipieTotalLabel:TextField;
-			_PipieColorTotalCanvas.bitmapData.lock();
-			for (var j:uint = 0; j < _ColorNum; j++)
-			{
-				tmpBitmapData = PipieUtils.genPipieTopBitmapData(PipieUtils.COLOR_LIST[j]);
-				
-				point.x = j * (pipieOV.DIR_TOP_W + 2) + 1;
-				point.y = 0;
-				_PipieColorTotalCanvas.bitmapData.copyPixels(tmpBitmapData, rect, point);
-				
-				pipieTotalLabel = _PipieColorLabelList[j];
-				pipieTotalLabel.visible = true;
-				pipieTotalLabel.x = 480 - (_ColorNum - j) * (pipieOV.DIR_TOP_W + 2);
-				pipieTotalLabel.text = _LevelPipieNum.toString();
-			}
-			_PipieColorTotalCanvas.bitmapData.unlock();
-			_PipieColorTotalCanvas.x = 480 - _ColorNum * (pipieOV.DIR_TOP_W+2); 
-			
 			initPipieData();
 			
-			drawPipieTopCanvas()
-			drawPipieButtomCanvas();
+			drawPipieTopAndBottomCanvas();
 			drawPipieCanvas();
+			drawTotalPipieCanvas();
 			
 			genInitPipieContent();
 			
@@ -1100,6 +1193,11 @@ package view
 				_PipieCanvas.bitmapData.copyPixels(tmpBitmapData, midRect, point);
 			}
 			_PipieCanvas.bitmapData.unlock();
+		}
+		
+		private function stopBtnClickHandler(e:MouseEvent):void
+		{
+			setState(STATE_STOP);
 		}
 	}
 
