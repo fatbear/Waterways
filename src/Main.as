@@ -82,7 +82,8 @@ package
 		
 		private function onAgain(e:Event):void
 		{
-			
+			disposeViewMain();
+			setViewChange(VIEW_STATE_MAIN);
 		}
 		
 		private function customEventSoundHandler(e:CustomEventSound):void

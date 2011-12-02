@@ -33,154 +33,37 @@ package datamodels
 		public static const DIR_COMMON_W:Number = 68;
 		public static const DIR_COMMON_H:Number = 68;
 		
-		private var _Direction:uint = DIR_12;
-		private var _Type:uint = STATE_NONE;
-		private var _Color:uint = COLOR_GREEN;
-		private var _PX:uint = 0;
-		private var _PY:uint = 0;
-		private var _X:Number = 0;
-		private var _Y:Number = 0;
-		private var _NextX:Number = 0;
-		private var _NextY:Number = 0;
-		private var _Times:int = -1;
+		public var direction:uint = DIR_12;
+		public var type:uint = STATE_NONE;
+		public var color:uint = COLOR_GREEN;
+		public var px:uint = 0;
+		public var py:uint = 0;
+		public var x:Number = 0;
+		public var y:Number = 0;
+		public var nextX:Number = 0;
+		public var nextY:Number = 0;
+		public var times:int = -1;
 		//-1 表示不倒数，大于0就是倒数，等于0表示倒数结束
 		
-		private var _ContentPipie1:pipieOV = null;
-		private var _ContentPipie2:pipieOV = null;
-		private var _EnterPipie:pipieOV = null;
+		public var contentPipie1:pipieOV = null;
+		public var contentPipie2:pipieOV = null;
+		public var enterPipie:pipieOV = null;
 		
 		public function pipieOV() 
 		{
 			
 		}
-		
-		public function set direction(value:uint):void
-		{
-			this._Direction = value;
-		}
-		public function get direction():uint
-		{
-			return this._Direction;
-		}
-		
-		public function set type(value:uint):void
-		{
-			this._Type = value;
-		}
-		public function get type():uint
-		{
-			return this._Type;
-		}
-		
-		public function set color(value:uint):void
-		{
-			this._Color = value;
-		}
-		public function get color():uint
-		{
-			return this._Color;
-		}
-		
-		public function set px(value:uint):void
-		{
-			this._PX = value;
-		}
-		public function get px():uint
-		{
-			return this._PX;
-		}
-		
-		public function set py(value:uint):void
-		{
-			this._PY = value;
-		}
-		public function get py():uint
-		{
-			return this._PY;
-		}
-		
-		public function set x(value:Number):void
-		{
-			this._X = value;
-		}
-		public function get x():Number
-		{
-			return this._X;
-		}
-		
-		public function set y(value:Number):void
-		{
-			this._Y = value;
-		}
-		public function get y():Number
-		{
-			return this._Y;
-		}
-		
-		public function set nextX(value:Number):void
-		{
-			this._NextX = value;
-		}
-		public function get nextX():Number
-		{
-			return this._NextX;
-		}
-		
-		public function set nextY(value:Number):void
-		{
-			this._NextY = value;
-		}
-		public function get nextY():Number
-		{
-			return this._NextY;
-		}
-		
-		public function set times(value:int):void
-		{
-			this._Times = value;
-		}
-		public function get times():int
-		{
-			return this._Times;
-		}
-		
-		public function set enterPipie(value:pipieOV):void
-		{
-			this._EnterPipie = value;
-		}
-		public function get enterPipie():pipieOV
-		{
-			return _EnterPipie;
-		}
-		
-		public function set contentPipie1(value:pipieOV):void
-		{
-			this._ContentPipie1 = value;
-		}
-		public function get contentPipie1():pipieOV
-		{
-			return _ContentPipie1;
-		}
-		
-		public function set contentPipie2(value:pipieOV):void
-		{
-			this._ContentPipie2 = value;
-		}
-		public function get contentPipie2():pipieOV
-		{
-			return _ContentPipie2;
-		}
-
+	
 		public function cleanPipie():void
 		{
-			_ContentPipie1 = null;
-			_ContentPipie2 = null;
-			_EnterPipie = null;
+			contentPipie1 = null;
+			contentPipie2 = null;
+			enterPipie = null;
 		}
 		
 		public function traceString(value:String):void
 		{
-			trace(value,"= (", _PX+1, _PY+1, ")");
+			trace(value,"= (", px+1, py+1, ")");
 		}
 	}
 

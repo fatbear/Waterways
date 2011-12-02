@@ -610,9 +610,12 @@ package view
 					if (tmpPipieOV && tmpPipieOV.type != pipieOV.STATE_PASSING)
 					{
 						tmpBitmapData = PipieUtils.genPipieBitmapData(tmpPipieOV);
-						point.x = tmpPipieOV.x;
-						point.y = tmpPipieOV.y;
-						_PipieCanvas.bitmapData.copyPixels(tmpBitmapData, tmpBitmapData.rect, point);
+						point.x = tmpPipieOV.nextX;
+						point.y = tmpPipieOV.nextY;
+						if (point.y >= 0)
+						{
+							_PipieCanvas.bitmapData.copyPixels(tmpBitmapData, tmpBitmapData.rect, point, tmpBitmapData, new Point(), true);
+						}
 					}
 				}
 				_PipieCanvas.bitmapData.unlock();
